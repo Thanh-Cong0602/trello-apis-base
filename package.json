@@ -1,0 +1,17 @@
+{
+  "name": "trello-apis",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Thanh Cong Nguyen",
+  "main": "src/server.js",
+  "repository": "https://www.linkedin.com/in/thcongnguyen/",
+  "author": "Thanh Cong Nguyen Dev",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0"
+  }
+}
