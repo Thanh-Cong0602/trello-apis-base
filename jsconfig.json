@@ -1,0 +1,12 @@
+/**
+ * Import necessary modules
+ * Author: Thanh Cong Nguyen
+ */
+
+{
+  "compilerOptions": {
+    "paths": {
+      "~/*": ["./src/*"],
+    },
+  }
+}
