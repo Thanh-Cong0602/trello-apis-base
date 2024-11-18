@@ -1,8 +1,12 @@
 import { StatusCodes } from 'http-status-codes'
+import { boardService } from '~/services/board.service'
 
 const createNew = async (req, res, next) => {
   try {
-    res.status(StatusCodes.CREATED).json({ message: 'APIs v1 created new board!', code: StatusCodes.CREATED })
+    /* Điều hướng sang tầng Service */
+    const createBoard = await boardService.createNew(req.body)
+
+    res.status(StatusCodes.CREATED).json(createBoard)
   } catch (_error) {
     next(_error)
   }
