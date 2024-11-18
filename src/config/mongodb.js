@@ -1,14 +1,9 @@
 import { MongoClient, ServerApiVersion } from 'mongodb'
-
-const password = encodeURIComponent('tcn0602C@')
-
-const MONGODB_URL = `mongodb+srv://th_cong_ng:${password}@cluster0-thanhcongnguye.in6kz.mongodb.net`
-
-const DATABASE_NAME = 'trello-by-thanh-cong-nguyen'
+import { env } from './environment'
 
 let trelloDatabaseInstance = null
 
-const mongoClientInstance = new MongoClient(MONGODB_URL, {
+const mongoClientInstance = new MongoClient(env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -18,7 +13,7 @@ const mongoClientInstance = new MongoClient(MONGODB_URL, {
 
 export const CONNECT_DB = async () => {
   await mongoClientInstance.connect()
-  trelloDatabaseInstance = mongoClientInstance.db(DATABASE_NAME)
+  trelloDatabaseInstance = mongoClientInstance.db(env.DATABASE_NAME)
 }
 
 export const GET_DB = () => {
