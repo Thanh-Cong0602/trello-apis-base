@@ -4,6 +4,7 @@ import exitHook from 'async-exit-hook'
 import express from 'express'
 import { env } from '~/config/environment'
 import { CLOSE_DB, CONNECT_DB } from '~/config/mongodb'
+import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
 import { APIs_V1 } from '~/routes/v1'
 
 const START_SERVER = () => {
@@ -12,6 +13,9 @@ const START_SERVER = () => {
   app.use(express.json())
 
   app.use('/v1', APIs_V1)
+
+  /* Middleware xử lý lỗi tập trung */
+  app.use(errorHandlingMiddleware)
 
   app.listen(env.APP_PORT, env.APP_HOST, () => {
     console.log(
@@ -27,7 +31,7 @@ const START_SERVER = () => {
 }
 
 /* Chỉ khi kết nối tới Database thành công thì mới start server Back-end lên */
-;(async () => {
+(async () => {
   try {
     console.log('1. Connecting to MongoDB Cloud Atlas...')
     await CONNECT_DB()
