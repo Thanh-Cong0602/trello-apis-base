@@ -3,23 +3,24 @@
 import express from 'express'
 import { CLOSE_DB, CONNECT_DB, GET_DB } from './config/mongodb'
 import exitHook from 'async-exit-hook'
+import { env } from './config/environment'
 
 const START_SERVER = () => {
   const app = express()
   app.get('/', async (req, res) => {
     console.log(await GET_DB().listCollections().toArray())
   })
-  const hostname = 'localhost'
-  const port = 8017
 
-  app.listen(port, hostname, () => {
-    console.log(`3. Halo Thanh Cong Nguyen, I'm running successfully at Host: ${hostname} and Port: ${port}`)
+  app.listen(env.APP_PORT, env.APP_HOST, () => {
+    console.log(
+      `3. Halo ${env.AUTHOR}, I'm running successfully at Host: ${env.APP_HOST} and Port: ${env.APP_PORT}`
+    )
   })
 
   exitHook(() => {
-    console.log('4. Disconnecting to MongoDB Cloud Atlas...')
+    console.log('4. Server is sutting down...')
     CLOSE_DB()
-    console.log('5. Disconnected to MongoDB Cloud Atlas...')
+    console.log('5. Disconnected to MongoDB Cloud Atlas')
   })
 }
 
