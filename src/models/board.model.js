@@ -38,11 +38,11 @@ const createNew = async data => {
   }
 }
 
-const findOneById = async id => {
+const findOneById = async boardId => {
   try {
     return await GET_DB()
       .collection(BOARD_COLLECTION_NAME)
-      .findOne({ _id: ObjectId.createFromHexString(id) })
+      .findOne({ _id: ObjectId.createFromHexString(boardId) })
   } catch (_error) {
     throw new Error(_error)
   }

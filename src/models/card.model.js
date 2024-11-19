@@ -38,11 +38,11 @@ const createNew = async data => {
   }
 }
 
-const findOneById = async id => {
+const findOneById = async cardId => {
   try {
     return await GET_DB()
       .collection(CARD_COLLECTION_NAME)
-      .findOne({ _id: ObjectId.createFromHexString(id) })
+      .findOne({ _id: ObjectId.createFromHexString(cardId) })
   } catch (_error) {
     throw new Error(_error)
   }
@@ -68,10 +68,21 @@ const update = async (cardId, updateData) => {
   }
 }
 
+const deleteManyByColumnId = async columnId => {
+  try {
+    return await GET_DB()
+      .collection(CARD_COLLECTION_NAME)
+      .deleteMany({ columnId: ObjectId.createFromHexString(columnId) })
+  } catch (_error) {
+    throw new Error(_error)
+  }
+}
+
 export const cardModel = {
   CARD_COLLECTION_NAME,
   CARD_COLLECTION_SCHEMA,
   createNew,
   findOneById,
-  update
+  update,
+  deleteManyByColumnId
 }
