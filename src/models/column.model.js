@@ -67,6 +67,9 @@ const update = async (columnId, updateData) => {
       if (INVALID_UPDATE_FIELDS.includes(fieldName)) delete updateData[fieldName]
     })
 
+    if (updateData.cardOrderIds)
+      updateData.cardOrderIds = updateData.cardOrderIds.map(cardId => ObjectId.createFromHexString(cardId))
+
     return await GET_DB()
       .collection(COLUMN_COLLECTION_NAME)
       .findOneAndUpdate(
