@@ -76,7 +76,7 @@ const getDetails = async id => {
       ])
       .toArray()
 
-    return result[0] || {}
+    return result[0] || null
   } catch (_error) {
     throw new Error(_error)
   }
