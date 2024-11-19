@@ -1,0 +1,10 @@
+/**
+ * Author: Thanh Cong Nguyen
+ */
+{
+  "presets": ["@babel/preset-env"],
+  "plugins": [
+    ["@babel/transform-runtime"],
+    ["module-resolver", { "alias": { "~": "./src" } }]
+  ]
+}

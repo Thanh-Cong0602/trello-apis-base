@@ -1,14 +1,57 @@
-import express from 'express';
+/* eslint-disable no-console */
 
-const app = express()
+import exitHook from 'async-exit-hook'
+import cors from 'cors'
+import express from 'express'
+import { corsOptions } from '~/config/cors'
+import { env } from '~/config/environment'
+import { CLOSE_DB, CONNECT_DB } from '~/config/mongodb'
+import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
+import { APIs_V1 } from '~/routes/v1'
 
-const hostname = 'localhost'
-const port = 8017
+const START_SERVER = () => {
+  const app = express()
 
-app.get('/', function (req, res) {
-  res.send('<h1>Hello Thanh Cong Nguyen</h1>')
-})
+  /* Handle cors */
+  app.use(cors(corsOptions))
 
-app.listen(port, hostname, () => {
-  console.log(`Hello Thanh Cong Nguyen, I'm running server at http://${hostname}:${port}/`)
-})
+  app.use(express.json())
+
+  app.use('/v1', APIs_V1)
+
+  /* Middleware xử lý lỗi tập trung */
+  app.use(errorHandlingMiddleware)
+
+  app.listen(env.APP_PORT, env.APP_HOST, () => {
+    console.log(
+      `3. Halo ${env.AUTHOR}, I'm running successfully at Host: ${env.APP_HOST} and Port: ${env.APP_PORT}`
+    )
+  })
+
+  exitHook(() => {
+    console.log('4. Server is sutting down...')
+    CLOSE_DB()
+    console.log('5. Disconnected to MongoDB Cloud Atlas')
+  })
+}
+
+/* Chỉ khi kết nối tới Database thành công thì mới start server Back-end lên */
+(async () => {
+  try {
+    console.log('1. Connecting to MongoDB Cloud Atlas...')
+    await CONNECT_DB()
+    console.log('2. Connected to MongoDB Cloud Atlas!')
+    START_SERVER()
+  } catch (_error) {
+    console.error(_error)
+    process.exit(0)
+  }
+})()
+
+// CONNECT_DB()
+//   .then(() => console.log('2. Connected to MongoDB Cloud Atlas!'))
+//   .then(() => START_SERVER())
+//   .catch(_error => {
+//     console.error(_error)
+//     process.exit(0)
+//   })
