@@ -24,7 +24,13 @@ const validateBeforeCreate = async data => {
 const createNew = async data => {
   try {
     const validData = await validateBeforeCreate(data)
-    return await GET_DB().collection(CARD_COLLECTION_NAME).insertOne(validData)
+    return await GET_DB()
+      .collection(CARD_COLLECTION_NAME)
+      .insertOne({
+        ...validData,
+        boardId: ObjectId.createFromHexString(validData.boardId),
+        columnId: ObjectId.createFromHexString(validData.columnId)
+      })
   } catch (_error) {
     throw new Error(_error)
   }

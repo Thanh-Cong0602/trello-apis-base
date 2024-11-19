@@ -1,3 +1,4 @@
+import { boardModel } from '~/models/board.model'
 import { columnModel } from '~/models/column.model'
 
 const createNew = async reqBody => {
@@ -8,6 +9,10 @@ const createNew = async reqBody => {
 
     const getNewColumn = await columnModel.findOneById(createdColumn.insertedId.toString())
 
+    if (getNewColumn) {
+      getNewColumn.cards = []
+      await boardModel.pushColumnOrderIds(getNewColumn)
+    }
     return getNewColumn
   } catch (error) {
     throw error
