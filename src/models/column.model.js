@@ -25,7 +25,10 @@ const validateBeforeCreate = async data => {
 const createNew = async data => {
   try {
     const validData = await validateBeforeCreate(data)
-    return await GET_DB().collection(COLUMN_COLLECTION_NAME).insertOne(validData)
+
+    return await GET_DB()
+      .collection(COLUMN_COLLECTION_NAME)
+      .insertOne({ ...validData, boardId: ObjectId.createFromHexString(validData.boardId) })
   } catch (_error) {
     throw new Error(_error)
   }
@@ -41,9 +44,25 @@ const findOneById = async id => {
   }
 }
 
+const pushCardOrderIds = async card => {
+  try {
+    const result = GET_DB()
+      .collection(COLUMN_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: card.columnId },
+        { $push: { cardOrderIds: card._id } },
+        { returnDocument: 'after' }
+      )
+    return result.value || null
+  } catch (_error) {
+    throw new Error(_error)
+  }
+}
+
 export const columnModel = {
   COLUMN_COLLECTION_NAME,
   COLUMN_COLLECTION_SCHEMA,
   createNew,
-  findOneById
+  findOneById,
+  pushCardOrderIds
 }
