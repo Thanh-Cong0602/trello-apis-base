@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 
 import exitHook from 'async-exit-hook'
+import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
 import { corsOptions } from '~/config/cors'
@@ -8,10 +9,16 @@ import { env } from '~/config/environment'
 import { CLOSE_DB, CONNECT_DB } from '~/config/mongodb'
 import { errorHandlingMiddleware } from '~/middlewares/errorHandlingMiddleware'
 import { APIs_V1 } from '~/routes/v1'
-
 const START_SERVER = () => {
   const app = express()
 
+  app.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store')
+    next()
+  })
+
+  /* Cấu hình Cookie parser */
+  app.use(cookieParser())
   /* Handle cors */
   app.use(cors(corsOptions))
 
@@ -36,7 +43,7 @@ const START_SERVER = () => {
 }
 
 /* Chỉ khi kết nối tới Database thành công thì mới start server Back-end lên */
-(async () => {
+;(async () => {
   try {
     console.log('1. Connecting to MongoDB Cloud Atlas...')
     await CONNECT_DB()
