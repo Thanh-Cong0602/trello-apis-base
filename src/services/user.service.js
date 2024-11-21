@@ -1,8 +1,10 @@
 import bcrypt from 'bcryptjs'
 import { StatusCodes } from 'http-status-codes'
-import { userModal } from '~/models/user.model'
-import ApiError from '~/utils/ApiError'
 import { v4 as uuidv4 } from 'uuid'
+import { userModal } from '~/models/user.model'
+import { BrevoProvider } from '~/providers/Brevo.provider'
+import ApiError from '~/utils/ApiError'
+import { WEBSITE_DOMAIN } from '~/utils/constants'
 import { pickUser } from '~/utils/formatters'
 
 const createNew = async reqBody => {
@@ -22,7 +24,18 @@ const createNew = async reqBody => {
       verifyToken: uuidv4()
     }
     const createdUser = await userModal.createNew(newUser)
-    return pickUser(await userModal.findOneById(createdUser.insertedId.toString()))
+    const getNewUser = await userModal.findOneById(createdUser.insertedId.toString())
+    const verificationLink = `${WEBSITE_DOMAIN}/account/verification?email=${getNewUser.email}&token=${getNewUser.verifyToken}`
+    const customSubject = 'Trello Web: Please verify your email before using our service!'
+    const customHtmlContent = `
+      <h3>Here is your verification link:</h3>
+      <h3>${verificationLink}</h3>
+      <h3>Sincerely, <br/>Thanh Cong Nguyen</h3>
+    `
+
+    const res = await BrevoProvider.sendEmail(getNewUser.email, customSubject, customHtmlContent)
+    console.log('🚀 ~ env.res:', res)
+    return pickUser(getNewUser)
   } catch (error) {
     throw error
   }
