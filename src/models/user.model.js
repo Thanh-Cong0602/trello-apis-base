@@ -70,7 +70,7 @@ const update = async (userId, updateData) => {
     return await GET_DB()
       .collection(USER_COLLECTION_NAME)
       .findOneAndUpdate(
-        { _id: ObjectId.createFromHexString(userId) },
+        { _id: userId },
         { $set: updateData },
         { returnDocument: 'after' }
       )
