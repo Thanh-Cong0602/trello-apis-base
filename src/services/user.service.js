@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { env } from '~/config/environment'
 import { userModal } from '~/models/user.model'
 import { BrevoProvider } from '~/providers/Brevo.provider'
+import { CloundinaryProvider } from '~/providers/Cloudinary.provider'
 import { JwtProvider } from '~/providers/Jwt.provider'
 import ApiError from '~/utils/ApiError'
 import { WEBSITE_DOMAIN } from '~/utils/constants'
@@ -129,7 +130,7 @@ const refreshToken = async clientRefreshToken => {
   }
 }
 
-const update = async (userId, reqBody) => {
+const update = async (userId, reqBody, userAvatarFile) => {
   try {
     const existUser = await userModal.findOneById(userId)
     if (!existUser) throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found')
@@ -146,6 +147,13 @@ const update = async (userId, reqBody) => {
       updatedUser = await userModal.update(existUser._id, {
         password: bcrypt.hashSync(reqBody.new_password, 8)
       })
+    } else if (userAvatarFile) {
+      /* Trường hợp upload file lên Cloud Storage, cụ thể là Cloudinary */
+      const uploadResult = await CloundinaryProvider.streamUpload(userAvatarFile.buffer, 'users')
+      console.log('🚀 ~ update ~ uploadResult:', uploadResult)
+
+      /* Lưu lại secure_url của cái file ảnh vào trong Database */
+      updatedUser = await userModal.update(existUser._id, { avatar: uploadResult.secure_url })
     } else {
       updatedUser = await userModal.update(existUser._id, reqBody)
     }
