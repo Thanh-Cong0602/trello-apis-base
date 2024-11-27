@@ -1,11 +1,11 @@
 import Joi from 'joi'
 import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
+import { pagingSkipValue } from '~/utils/algorithms'
 import { BOARD_TYPES } from '~/utils/constants'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 import { cardModel } from './card.model'
 import { columnModel } from './column.model'
-import { pagingSkipValue } from '~/utils/algorithms'
 
 // Define Collection (name & schema)
 const BOARD_COLLECTION_NAME = 'boards'
@@ -41,10 +41,15 @@ const validateBeforeCreate = async data => {
   return await BOARD_COLLECTION_SCHEMA.validateAsync(data, { abortEarly: false })
 }
 
-const createNew = async data => {
+const createNew = async (userId, data) => {
   try {
     const validData = await validateBeforeCreate(data)
-    return await GET_DB().collection(BOARD_COLLECTION_NAME).insertOne(validData)
+    const newBoardToAdd = {
+      ...validData,
+      ownerIds: [ObjectId.createFromHexString(userId)]
+    }
+
+    return await GET_DB().collection(BOARD_COLLECTION_NAME).insertOne(newBoardToAdd)
   } catch (_error) {
     throw new Error(_error)
   }
@@ -60,17 +65,23 @@ const findOneById = async boardId => {
   }
 }
 
-const getDetails = async id => {
+const getDetails = async (userId, boardId) => {
   try {
+    const queryConditions = [
+      { _id: ObjectId.createFromHexString(boardId) },
+      { _destroy: false },
+      {
+        $or: [
+          { ownerIds: { $all: [ObjectId.createFromHexString(userId)] } },
+          { memberIds: { $all: [ObjectId.createFromHexString(userId)] } }
+        ]
+      }
+    ]
+
     const result = await GET_DB()
       .collection(BOARD_COLLECTION_NAME)
       .aggregate([
-        {
-          $match: {
-            _id: ObjectId.createFromHexString(id),
-            _destroy: false
-          }
-        },
+        { $match: { $and: queryConditions } },
         {
           $lookup: {
             from: columnModel.COLUMN_COLLECTION_NAME,
@@ -188,7 +199,6 @@ const getBoards = async (userId, page, itemPerPage) => {
       )
       .toArray()
 
-    console.log('🚀 ~ getBoards ~ query:', query)
 
     const res = query[0]
 
