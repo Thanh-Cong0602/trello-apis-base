@@ -17,6 +17,19 @@ const createNew = async reqBody => {
   }
 }
 
-export const cardService = {
-  createNew
+const update = async (cardId, reqBody) => {
+  try {
+    const updatedData = {
+      ...reqBody,
+      updatedAt: new Date()
+    }
+
+    const updatedCard = await cardModel.update(cardId, updatedData)
+
+    return updatedCard
+  } catch (error) {
+    throw error
+  }
 }
+
+export const cardService = { createNew, update }
