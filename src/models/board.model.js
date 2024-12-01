@@ -6,6 +6,7 @@ import { BOARD_TYPES } from '~/utils/constants'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 import { cardModel } from './card.model'
 import { columnModel } from './column.model'
+import { userModal } from './user.model'
 
 // Define Collection (name & schema)
 const BOARD_COLLECTION_NAME = 'boards'
@@ -96,6 +97,24 @@ const getDetails = async (userId, boardId) => {
             localField: '_id',
             foreignField: 'boardId',
             as: 'cards'
+          }
+        },
+        {
+          $lookup: {
+            from: userModal.USER_COLLECTION_NAME,
+            localField: 'ownerIds',
+            foreignField: '_id',
+            as: 'owners',
+            pipeline: [{ $project: { password: 0, verifyToken: 0 } }]
+          }
+        },
+        {
+          $lookup: {
+            from: userModal.USER_COLLECTION_NAME,
+            localField: 'memberIds',
+            foreignField: '_id',
+            as: 'members',
+            pipeline: [{ $project: { password: 0, verifyToken: 0 } }]
           }
         }
       ])
@@ -198,7 +217,6 @@ const getBoards = async (userId, page, itemPerPage) => {
         { collation: { locale: 'en' } }
       )
       .toArray()
-
 
     const res = query[0]
 

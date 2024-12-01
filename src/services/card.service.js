@@ -1,5 +1,6 @@
 import { cardModel } from '~/models/card.model'
 import { columnModel } from '~/models/column.model'
+import { CloundinaryProvider } from '~/providers/Cloudinary.provider'
 
 const createNew = async reqBody => {
   try {
@@ -17,14 +18,20 @@ const createNew = async reqBody => {
   }
 }
 
-const update = async (cardId, reqBody) => {
+const update = async (cardId, reqBody, cardCoverFile) => {
   try {
     const updatedData = {
       ...reqBody,
       updatedAt: new Date()
     }
+    let updatedCard = {}
+    if (cardCoverFile) {
+      const uploadResult = await CloundinaryProvider.streamUpload(cardCoverFile.buffer, 'card-covers')
 
-    const updatedCard = await cardModel.update(cardId, updatedData)
+      updatedCard = await cardModel.update(cardId, { cover: uploadResult.secure_url })
+    } else {
+      updatedCard = await cardModel.update(cardId, updatedData)
+    }
 
     return updatedCard
   } catch (error) {
