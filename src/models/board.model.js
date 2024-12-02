@@ -6,7 +6,7 @@ import { BOARD_TYPES } from '~/utils/constants'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 import { cardModel } from './card.model'
 import { columnModel } from './column.model'
-import { userModal } from './user.model'
+import { userModel } from './user.model'
 
 // Define Collection (name & schema)
 const BOARD_COLLECTION_NAME = 'boards'
@@ -101,7 +101,7 @@ const getDetails = async (userId, boardId) => {
         },
         {
           $lookup: {
-            from: userModal.USER_COLLECTION_NAME,
+            from: userModel.USER_COLLECTION_NAME,
             localField: 'ownerIds',
             foreignField: '_id',
             as: 'owners',
@@ -110,7 +110,7 @@ const getDetails = async (userId, boardId) => {
         },
         {
           $lookup: {
-            from: userModal.USER_COLLECTION_NAME,
+            from: userModel.USER_COLLECTION_NAME,
             localField: 'memberIds',
             foreignField: '_id',
             as: 'members',

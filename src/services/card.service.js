@@ -18,7 +18,7 @@ const createNew = async reqBody => {
   }
 }
 
-const update = async (cardId, reqBody, cardCoverFile) => {
+const update = async (cardId, reqBody, cardCoverFile, userInfo) => {
   try {
     const updatedData = {
       ...reqBody,
@@ -29,6 +29,14 @@ const update = async (cardId, reqBody, cardCoverFile) => {
       const uploadResult = await CloundinaryProvider.streamUpload(cardCoverFile.buffer, 'card-covers')
 
       updatedCard = await cardModel.update(cardId, { cover: uploadResult.secure_url })
+    } else if (updatedData.commentToAdd) {
+      const commentData = {
+        ...updatedData.commentToAdd,
+        commentedAt: Date.now(),
+        userId: userInfo._id,
+        userEmail: userInfo.email
+      }
+      updatedCard = await cardModel.unshiftNewComment(cardId, commentData)
     } else {
       updatedCard = await cardModel.update(cardId, updatedData)
     }

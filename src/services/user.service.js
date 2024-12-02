@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import { StatusCodes } from 'http-status-codes'
 import { v4 as uuidv4 } from 'uuid'
 import { env } from '~/config/environment'
-import { userModal } from '~/models/user.model'
+import { userModel } from '~/models/user.model'
 import { BrevoProvider } from '~/providers/Brevo.provider'
 import { CloundinaryProvider } from '~/providers/Cloudinary.provider'
 import { JwtProvider } from '~/providers/Jwt.provider'
@@ -12,7 +12,7 @@ import { pickUser } from '~/utils/formatters'
 
 const createNew = async reqBody => {
   try {
-    const existUser = await userModal.findOneByEmail(reqBody.email)
+    const existUser = await userModel.findOneByEmail(reqBody.email)
     if (existUser) {
       throw new ApiError(StatusCodes.CONFLICT, 'Email already exists!')
     }
@@ -26,8 +26,8 @@ const createNew = async reqBody => {
       displayName: nameFromEmail,
       verifyToken: uuidv4()
     }
-    const createdUser = await userModal.createNew(newUser)
-    const getNewUser = await userModal.findOneById(createdUser.insertedId.toString())
+    const createdUser = await userModel.createNew(newUser)
+    const getNewUser = await userModel.findOneById(createdUser.insertedId.toString())
     const verificationLink = `${WEBSITE_DOMAIN}/account/verification?email=${getNewUser.email}&token=${getNewUser.verifyToken}`
     const customSubject = 'Trello Web: Please verify your email before using our service!'
     const customHtmlContent = `
@@ -47,7 +47,7 @@ const createNew = async reqBody => {
 const verifyAccount = async reqBody => {
   try {
     /* Querry user trong Database  */
-    const existUser = await await userModal.findOneByEmail(reqBody.email)
+    const existUser = await await userModel.findOneByEmail(reqBody.email)
 
     /* Các bước kiểm tra cần thiết */
     if (!existUser) throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
@@ -63,7 +63,7 @@ const verifyAccount = async reqBody => {
       verifyToken: null
     }
 
-    const updatedUser = await userModal.update(existUser._id, updateData)
+    const updatedUser = await userModel.update(existUser._id, updateData)
 
     return pickUser(updatedUser)
   } catch (_error) {
@@ -74,7 +74,7 @@ const verifyAccount = async reqBody => {
 const login = async reqBody => {
   try {
     /* Querry user trong Database  */
-    const existUser = await await userModal.findOneByEmail(reqBody.email)
+    const existUser = await await userModel.findOneByEmail(reqBody.email)
 
     /* Các bước kiểm tra cần thiết */
     if (!existUser) throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found!')
@@ -132,7 +132,7 @@ const refreshToken = async clientRefreshToken => {
 
 const update = async (userId, reqBody, userAvatarFile) => {
   try {
-    const existUser = await userModal.findOneById(userId)
+    const existUser = await userModel.findOneById(userId)
     if (!existUser) throw new ApiError(StatusCodes.NOT_FOUND, 'Account not found')
     if (!existUser.isActive) throw new ApiError(StatusCodes.NOT_ACCEPTABLE, 'Your account is not active!')
 
@@ -144,7 +144,7 @@ const update = async (userId, reqBody, userAvatarFile) => {
         throw new ApiError(StatusCodes.NOT_ACCEPTABLE, 'Your current password is incorrect!')
       }
 
-      updatedUser = await userModal.update(existUser._id, {
+      updatedUser = await userModel.update(existUser._id, {
         password: bcrypt.hashSync(reqBody.new_password, 8)
       })
     } else if (userAvatarFile) {
@@ -152,9 +152,9 @@ const update = async (userId, reqBody, userAvatarFile) => {
       const uploadResult = await CloundinaryProvider.streamUpload(userAvatarFile.buffer, 'users')
 
       /* Lưu lại secure_url của cái file ảnh vào trong Database */
-      updatedUser = await userModal.update(existUser._id, { avatar: uploadResult.secure_url })
+      updatedUser = await userModel.update(existUser._id, { avatar: uploadResult.secure_url })
     } else {
-      updatedUser = await userModal.update(existUser._id, reqBody)
+      updatedUser = await userModel.update(existUser._id, reqBody)
     }
 
     return pickUser(updatedUser)

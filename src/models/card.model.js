@@ -95,11 +95,27 @@ const deleteManyByColumnId = async columnId => {
   }
 }
 
+const unshiftNewComment = async (cardId, commentData) => {
+  try {
+    const result = await GET_DB()
+      .collection(CARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: ObjectId.createFromHexString(cardId) },
+        { $push: { comments: { $each: [commentData], $position: 0 } } },
+        { returnDocument: 'after' }
+      )
+    return result
+  } catch (_error) {
+    throw new Error(_error)
+  }
+}
+
 export const cardModel = {
   CARD_COLLECTION_NAME,
   CARD_COLLECTION_SCHEMA,
   createNew,
   findOneById,
   update,
-  deleteManyByColumnId
+  deleteManyByColumnId,
+  unshiftNewComment
 }
