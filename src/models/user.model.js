@@ -79,7 +79,7 @@ const update = async (userId, updateData) => {
   }
 }
 
-export const userModal = {
+export const userModel = {
   USER_COLLECTION_NAME,
   USER_COLLECTION_SCHEMA,
   createNew,
