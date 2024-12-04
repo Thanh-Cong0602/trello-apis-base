@@ -4,14 +4,15 @@ import { boardModel } from '~/models/board.model'
 import { cardModel } from '~/models/card.model'
 import { columnModel } from '~/models/column.model'
 import ApiError from '~/utils/ApiError'
+import { DEFAULT_ITEMS_PER_PAGE, DEFAULT_PAGE } from '~/utils/constants'
 import { slugify } from '~/utils/formatters'
 
-const createNew = async reqBody => {
+const createNew = async (userId, reqBody) => {
   try {
     const newBoard = { ...reqBody, slug: slugify(reqBody.title) }
 
     /* Gọi tới tầng Modal để xử lý lưu bản ghi new Board vào trong Database */
-    const createdBoard = await boardModel.createNew(newBoard)
+    const createdBoard = await boardModel.createNew(userId, newBoard)
 
     /* Lấy bản ghi board sau khi gọi */
     const getNewBoard = await boardModel.findOneById(createdBoard.insertedId.toString())
@@ -22,9 +23,9 @@ const createNew = async reqBody => {
   }
 }
 
-const getDetails = async boardId => {
+const getDetails = async (userId, boardId) => {
   try {
-    const board = await boardModel.getDetails(boardId)
+    const board = await boardModel.getDetails(userId, boardId)
 
     if (!board) throw new ApiError(StatusCodes.NOT_FOUND, 'Board not found!')
 
@@ -75,9 +76,21 @@ const moveCardToDifferentColumn = async reqBody => {
   }
 }
 
+const getBoards = async (userId, page, itemPerPage) => {
+  try {
+    if (!page) page = DEFAULT_PAGE
+    if (!itemPerPage) itemPerPage = DEFAULT_ITEMS_PER_PAGE
+    const results = await boardModel.getBoards(userId, parseInt(page, 10), parseInt(itemPerPage, 10))
+    return results
+  } catch (error) {
+    throw error
+  }
+}
+
 export const boardService = {
   createNew,
-  getDetails,
   update,
-  moveCardToDifferentColumn
+  moveCardToDifferentColumn,
+  getBoards,
+  getDetails
 }

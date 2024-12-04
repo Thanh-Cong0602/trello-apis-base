@@ -1,7 +1,8 @@
 import Joi from 'joi'
 import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
-import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
+import { CARD_MEMBER_ACTIONS } from '~/utils/constants'
+import { EMAIL_RULE, EMAIL_RULE_MESSAGE, OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
 
 // Define Collection (name & schema)
 const CARD_COLLECTION_NAME = 'cards'
@@ -11,6 +12,23 @@ const CARD_COLLECTION_SCHEMA = Joi.object({
 
   title: Joi.string().required().min(3).max(50).trim().strict(),
   description: Joi.string().optional(),
+
+  cover: Joi.string().default(null),
+  memberIds: Joi.array()
+    .items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE))
+    .default([]),
+  comments: Joi.array()
+    .items({
+      userId: Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE),
+      userEmail: Joi.string().pattern(EMAIL_RULE).message(EMAIL_RULE_MESSAGE),
+      userAvatar: Joi.string(),
+      userDisplayName: Joi.string(),
+      content: Joi.string(),
+      /* Lưu ý: Vì dùng hàm $push để thêm comment nên không dùng set default Date.now luôn
+    giống hàm insertOne khi create được */
+      commentedAt: Joi.date().timestamp()
+    })
+    .default([]),
 
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
   updatedAt: Joi.date().timestamp('javascript').default(null),
@@ -78,11 +96,51 @@ const deleteManyByColumnId = async columnId => {
   }
 }
 
+const unshiftNewComment = async (cardId, commentData) => {
+  try {
+    const result = await GET_DB()
+      .collection(CARD_COLLECTION_NAME)
+      .findOneAndUpdate(
+        { _id: ObjectId.createFromHexString(cardId) },
+        { $push: { comments: { $each: [commentData], $position: 0 } } },
+        { returnDocument: 'after' }
+      )
+    return result
+  } catch (_error) {
+    throw new Error(_error)
+  }
+}
+
+const updateMembers = async (cardId, incomingUserInfo) => {
+  try {
+    let updateCondition = {}
+    if (incomingUserInfo.action === CARD_MEMBER_ACTIONS.ADD) {
+      updateCondition = { $push: { memberIds: ObjectId.createFromHexString(incomingUserInfo.userId) } }
+    }
+
+    if (incomingUserInfo.action === CARD_MEMBER_ACTIONS.REMOVE) {
+      updateCondition = { $pull: { memberIds: ObjectId.createFromHexString(incomingUserInfo.userId) } }
+    }
+
+    const result = await GET_DB()
+      .collection(CARD_COLLECTION_NAME)
+      .findOneAndUpdate({ _id: ObjectId.createFromHexString(cardId) }, updateCondition, {
+        returnDocument: 'after'
+      })
+
+    return result
+  } catch (_error) {
+    throw new Error(_error)
+  }
+}
+
 export const cardModel = {
   CARD_COLLECTION_NAME,
   CARD_COLLECTION_SCHEMA,
   createNew,
   findOneById,
   update,
-  deleteManyByColumnId
+  deleteManyByColumnId,
+  unshiftNewComment,
+  updateMembers
 }
