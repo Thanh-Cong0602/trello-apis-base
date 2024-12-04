@@ -72,15 +72,13 @@ const update = async (invitationId, updateData) => {
       if (INVALID_UPDATE_FIELDS.includes(fieldName)) delete updateData[fieldName]
     })
 
-    if (updateData.boardInvitation) {
-      updateData.boardInvitation = {
-        ...updateData.boardInvitation,
-        boardId: ObjectId.createFromHexString(updateData.boardInvitation.boardId)
-      }
-    }
     return await GET_DB()
       .collection(INVITATION_COLLECTION_NAME)
-      .findOneAndUpdate({ _id: invitationId }, { $set: updateData }, { returnDocument: 'after' })
+      .findOneAndUpdate(
+        { _id: ObjectId.createFromHexString(invitationId) },
+        { $set: updateData },
+        { returnDocument: 'after' }
+      )
   } catch (_error) {
     throw new Error(_error)
   }
