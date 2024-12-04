@@ -1,12 +1,12 @@
 import Joi from 'joi'
 import { ObjectId } from 'mongodb'
 import { GET_DB } from '~/config/mongodb'
+import { cardModel } from '~/models/card.model'
+import { columnModel } from '~/models/column.model'
+import { userModel } from '~/models/user.model'
 import { pagingSkipValue } from '~/utils/algorithms'
 import { BOARD_TYPES } from '~/utils/constants'
 import { OBJECT_ID_RULE, OBJECT_ID_RULE_MESSAGE } from '~/utils/validators'
-import { cardModel } from './card.model'
-import { columnModel } from './column.model'
-import { userModel } from './user.model'
 
 // Define Collection (name & schema)
 const BOARD_COLLECTION_NAME = 'boards'
